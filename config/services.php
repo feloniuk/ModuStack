@@ -44,5 +44,8 @@ return [
         'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
         'redirect' => env('APP_URL') . '/auth/linkedin/callback',
     ],
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
 
 ];
