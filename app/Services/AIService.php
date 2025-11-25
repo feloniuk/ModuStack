@@ -29,10 +29,17 @@ class AIService
                 'provider_id' => $this->provider->providerModel->id,
                 'model_name' => $payload['model'] ?? 'default',
                 'prompt' => $payload['prompt'],
+                'meta' => [
+                    'system_prompt' => $payload['system_prompt'] ?? null,
+                    'assistant_id' => $payload['assistant_id'] ?? null
+                ],
                 'status' => 'processing'
             ]);
 
-            $response = $this->provider->generate($payload);
+            $response = $this->provider->generate([
+                'prompt' => $payload['prompt'],
+                'system_prompt' => $payload['system_prompt'] ?? null
+            ]);
 
             $aiRequest->markAsCompleted($response->getText(), $response->getTokensUsed());
 

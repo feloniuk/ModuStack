@@ -24,12 +24,25 @@ class OpenAIProvider extends BaseAIProvider
 
         try {
             $model = $payload['model'] ?? 'gpt-3.5-turbo';
+            $messages = [];
+
+            // Добавляем системный промпт, если есть
+            if (!empty($payload['system_prompt'])) {
+                $messages[] = [
+                    'role' => 'system', 
+                    'content' => $payload['system_prompt']
+                ];
+            }
+
+            $messages[] = [
+                'role' => 'user', 
+                'content' => $payload['prompt']
+            ];
+
             $response = Http::withToken(config('services.openai.api_key'))
                 ->post(self::API_URL, [
                     'model' => $model,
-                    'messages' => [
-                        ['role' => 'user', 'content' => $payload['prompt']]
-                    ],
+                    'messages' => $messages,
                     'max_tokens' => $payload['max_tokens'] ?? 150
                 ]);
 

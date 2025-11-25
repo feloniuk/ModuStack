@@ -36,6 +36,18 @@ return [
         'trace' => env('LOG_DEPRECATIONS_TRACE', false),
     ],
 
+
+    'payments' => [
+        'driver' => 'daily',
+        'path' => storage_path('logs/payments.log'),
+        'level' => 'info',
+    ],
+    'subscriptions' => [
+        'driver' => 'daily',
+        'path' => storage_path('logs/subscriptions.log'),
+        'level' => 'info',
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Log Channels

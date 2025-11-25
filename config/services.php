@@ -47,5 +47,13 @@ return [
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
     ],
+    'fondy' => [
+        'merchant_key' => env('FONDY_MERCHANT_KEY'),
+        'merchant_secret' => env('FONDY_MERCHANT_SECRET'),
+        'endpoint' => env('FONDY_ENDPOINT', 'https://pay.fondy.eu')
+    ],
+    'liqpay' => [
+        // Аналогично Fondy
+    ]
 
 ];
