@@ -1,21 +1,27 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
-        @routes
-        @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
-        @inertiaHead
-    </head>
-    <body class="font-sans antialiased">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Platform</title>
+    
+    <!-- CDN Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CDN Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- CDN Axios для HTTP запросов -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <!-- CDN Vue Router -->
+    <script src="https://unpkg.com/vue-router@4"></script>
+</head>
+<body>
+    <div id="app">
         @inertia
-    </body>
+    </div>
+
+    @vite('resources/js/app.js')
+</body>
 </html>

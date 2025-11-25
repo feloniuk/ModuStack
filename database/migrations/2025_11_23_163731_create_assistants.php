@@ -8,10 +8,31 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Сначала создаем таблицу projects, если она еще не существует
+        if (!Schema::hasTable('projects')) {
+            Schema::create('projects', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->string('name');
+                $table->string('slug')->unique();
+                $table->text('description')->nullable();
+                $table->enum('visibility', ['private', 'shared', 'public'])->default('private');
+                $table->json('settings')->nullable();
+                $table->timestamp('last_used_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
         Schema::create('assistants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('project_id')->nullable()->constrained()->nullOnDelete();
+            
+            // Изменим определение внешнего ключа project_id
+            $table->foreignId('project_id')
+                  ->nullable()
+                  ->constrained('projects')
+                  ->nullOnDelete();
+            
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
@@ -21,7 +42,7 @@ return new class extends Migration
             $table->text('system_prompt')->nullable();
             $table->json('response_template')->nullable();
             
-            //限制和权限
+            // Лимиты и права
             $table->integer('max_tokens')->default(1000);
             $table->decimal('temperature', 3, 2)->default(0.7);
             $table->decimal('top_p', 3, 2)->default(1.0);

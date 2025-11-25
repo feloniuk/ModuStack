@@ -24,4 +24,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth', 'is_admin'])->group(function () {
+    Route::get('/admin', function () {
+        return Inertia::render('Admin/Dashboard');
+    })->name('admin.dashboard');
+
+    Route::get('/admin/users', function () {
+        return Inertia::render('Admin/Users');
+    })->name('admin.users');
+
+    // Аналогично для других admin-routes
+});
+
 require __DIR__.'/auth.php';

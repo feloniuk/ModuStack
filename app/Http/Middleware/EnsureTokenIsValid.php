@@ -11,20 +11,14 @@ use Illuminate\Support\Facades\Mail;
 
 class EnsureTokenIsValid
 {
-    public function handle(Request $request, Closure $next)
+    public function handle($request, Closure $next)
     {
-        // Проверка действительности токена
-        if (Auth::guard('sanctum')->check()) {
-            $user = $request->user();
-
-            // Проверка последней активности
-            if ($user->tokens()->where('last_used_at', '<', now()->subDays(30))->exists()) {
-                // Деактивируем старые токены
-                $user->tokens()->where('last_used_at', '<', now()->subDays(30))->delete();
-            }
-
-            // Проверка на подозрительную активность
-            $this->checkSuspiciousActivity($user);
+        // Проверяем токен и его давность
+        if (!$request->user() || 
+            $request->user()->tokens()->where('last_used_at', '<', now()->subDays(30))->exists()) {
+            return response()->json([
+                'message' => 'Токен просрочен. Пожалуйста, войдите заново.'
+            ], 401);
         }
 
         return $next($request);

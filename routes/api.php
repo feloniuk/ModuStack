@@ -12,6 +12,7 @@ use App\Http\Controllers\API\AssistantCategoryController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\ProviderManagementController;
 use App\Http\Controllers\Admin\PlanManagementController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +52,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified', 'is_admin'])->gr
     Route::apiResource('projects', ProjectController::class);
     Route::post('/projects/{project}/collaborators', [ProjectController::class, 'addCollaborator']);
     Route::delete('/projects/{project}/collaborators/{user}', [ProjectController::class, 'removeCollaborator']);
+
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 });
 
 Route::middleware([

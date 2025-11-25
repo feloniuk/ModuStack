@@ -64,4 +64,30 @@ class SubscriptionController extends Controller
                 : 'Не удалось отменить подписку'
         ]);
     }
+
+    public function adminIndex()
+    {
+        $subscriptions = Subscription::with(['user', 'plan'])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'subscriptions' => $subscriptions
+        ]);
+    }
+
+    public function adminCancel(Subscription $subscription)
+    {
+        try {
+            $this->subscriptionService->cancelSubscription($subscription);
+            
+            return response()->json([
+                'message' => 'Subscription canceled successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to cancel subscription'
+            ], 400);
+        }
+    }
 }
