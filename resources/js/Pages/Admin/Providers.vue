@@ -54,11 +54,7 @@
           <div class="flex space-x-2 mt-4">
             <button 
               @click="toggleProviderStatus(provider)"
-              :class="{
-                'bg-yellow-500': provider.status === 'active',
-                'bg-green-500': provider.status !== 'active',
-                'text-white px-4 py-2 rounded hover:opacity-90 w-full'
-              }"
+              class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
             >
               {{ provider.status === 'active' ? 'Deactivate' : 'Activate' }}
             </button>
@@ -84,7 +80,7 @@
               class="border-b"
             >
               <td class="px-4 py-3">{{ provider.name }}</td>
-              <td class="px-4 py-3">{{ provider.ai_requests_count }}</td>
+              <td class="px-4 py-3">{{ provider.ai_requests_count || 0 }}</td>
               <td class="px-4 py-3">
                 {{ calculateSuccessfulRequests(provider) }}
               </td>
@@ -122,7 +118,6 @@
         }
       },
       calculateSuccessRate(provider) {
-        // Метод расчета успешности провайдера
         const total = provider.ai_requests_count || 0
         const successful = this.calculateSuccessfulRequests(provider)
         return total > 0 
@@ -130,7 +125,6 @@
           : 0
       },
       calculateSuccessfulRequests(provider) {
-        // В реальном приложении это будет считаться на бэкенде
         return provider.ai_requests_count 
           ? Math.round(provider.ai_requests_count * 0.9) 
           : 0
