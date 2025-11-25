@@ -20,11 +20,27 @@ class DashboardController extends Controller
                 'total_users' => User::count(),
                 'active_users' => User::whereHas('subscriptions', fn($q) => $q->where('status', 'active'))->count(),
                 'total_plans' => Plan::count(),
-                'total_providers' => Provider::count()
+                'total_plans_active' => Plan::whereHas('subscriptions', fn($q) => $q->where('status', 'active'))->count()
             ],
-            'revenue_stats' => $this->getRevenueStatistics(),
-            'usage_stats' => $this->getUsageStatistics(),
-            'recent_activity' => $this->getRecentActivity()
+            'usage_stats' => [
+                'total_ai_requests' => AiRequest::where('created_at', '>=', now()->subMonth())->count(),
+                'tokens_by_provider' => AiRequest::groupBy('provider_id')
+                    ->select('provider_id', DB::raw('SUM(tokens_used) as total_tokens'))
+                    ->get()
+            ],
+            'revenue_stats' => [
+                'monthly_revenue' => Payment::where('status', 'completed')
+                    ->where('created_at', '>=', now()->subMonth())
+                    ->sum('amount'),
+                'total_revenue' => Payment::where('status', 'completed')->sum('amount')
+            ],
+            'recent_activity' => [
+                'recent_users' => User::latest()->limit(5)->get(),
+                'recent_subscriptions' => Subscription::with('user', 'plan')
+                    ->latest()
+                    ->limit(5)
+                    ->get()
+            ]
         ]);
     }
 

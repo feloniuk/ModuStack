@@ -1,68 +1,92 @@
 <template>
     <div class="min-h-screen bg-gray-100 p-6">
-      <h1 class="text-3xl font-bold mb-6">Административная панель</h1>
-      
-      <div class="grid grid-cols-4 gap-4 mb-8">
-        <div 
-          v-for="(stat, key) in dashboardStats" 
-          :key="key" 
-          class="bg-white shadow rounded-lg p-4 hover:shadow-md transition"
-        >
-          <div class="flex justify-between items-center">
-            <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase">{{ stat.label }}</h3>
-              <p class="text-2xl font-bold mt-2">{{ stat.value }}</p>
-            </div>
-            <div class="bg-blue-100 text-blue-500 p-3 rounded-full">
-              <i :class="stat.icon"></i>
-            </div>
-          </div>
-          <div class="mt-2 text-sm text-gray-500">
-            {{ stat.description }}
+      <div class="container mx-auto">
+        <div class="flex justify-between items-center mb-8">
+          <h1 class="text-3xl font-bold">Административная панель</h1>
+          <div class="flex space-x-4">
+            <router-link 
+              v-if="$page.props.auth.user.is_admin"
+              :to="{ name: 'admin.users' }"
+              class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            >
+              Управление пользователями
+            </router-link>
           </div>
         </div>
-      </div>
   
-      <div class="grid grid-cols-2 gap-4">
-        <div class="bg-white shadow rounded-lg p-6">
-          <h2 class="text-xl font-semibold mb-4">Последние пользователи</h2>
-          <table class="w-full">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="p-2 text-left">Имя</th>
-                <th class="p-2 text-left">Email</th>
-                <th class="p-2 text-left">Дата регистрации</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
+        <!-- Статистика -->
+        <div class="grid grid-cols-4 gap-6 mb-8">
+          <div 
+            v-for="(stat, key) in dashboardStats" 
+            :key="key" 
+            class="bg-white shadow-md rounded-lg p-6 transform transition hover:scale-105"
+          >
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">
+                  {{ stat.label }}
+                </h3>
+                <p class="text-3xl font-bold">{{ stat.value }}</p>
+              </div>
+              <div 
+                class="bg-blue-100 text-blue-500 p-3 rounded-full"
+              >
+                <i :class="stat.icon"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-sm text-gray-500">
+              {{ stat.description }}
+            </div>
+          </div>
+        </div>
+  
+        <!-- Графики и детальная статистика -->
+        <div class="grid grid-cols-2 gap-6">
+          <!-- Последние пользователи -->
+          <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Последние пользователи</h2>
+            <div v-if="latestUsers.length" class="space-y-3">
+              <div 
                 v-for="user in latestUsers" 
                 :key="user.id" 
-                class="border-b hover:bg-gray-50"
+                class="flex justify-between items-center border-b pb-2 last:border-b-0"
               >
-                <td class="p-2">{{ user.name }}</td>
-                <td class="p-2">{{ user.email }}</td>
-                <td class="p-2">{{ formatDate(user.created_at) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-  
-        <div class="bg-white shadow rounded-lg p-6">
-          <h2 class="text-xl font-semibold mb-4">Статистика AI-запросов</h2>
-          <div class="space-y-4">
-            <div v-for="provider in providerStats" :key="provider.name">
-              <div class="flex justify-between mb-2">
-                <span>{{ provider.name }}</span>
-                <span>{{ provider.requests }} запросов</span>
-              </div>
-              <div class="bg-gray-200 rounded-full h-2">
-                <div 
-                  class="bg-blue-500 rounded-full h-2" 
-                  :style="`width: ${provider.percentage}%`"
-                ></div>
+                <div>
+                  <p class="font-medium">{{ user.name }}</p>
+                  <p class="text-sm text-gray-500">{{ user.email }}</p>
+                </div>
+                <span class="text-sm text-gray-500">
+                  {{ formatRelativeDate(user.created_at) }}
+                </span>
               </div>
             </div>
+            <p v-else class="text-center text-gray-500">Нет новых пользователей</p>
+          </div>
+  
+          <!-- AI-запросы -->
+          <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Статистика AI-запросов</h2>
+            <div v-if="aiRequestStats.length" class="space-y-3">
+              <div 
+                v-for="(stat, index) in aiRequestStats" 
+                :key="index" 
+                class="flex items-center"
+              >
+                <div class="flex-grow">
+                  <p class="font-medium">{{ stat.provider }}</p>
+                  <div class="bg-gray-200 h-2 rounded-full overflow-hidden mt-1">
+                    <div 
+                      class="bg-blue-500 h-2 rounded-full" 
+                      :style="`width: ${stat.percentage}%`"
+                    ></div>
+                  </div>
+                </div>
+                <span class="ml-4 text-sm text-gray-500">
+                  {{ stat.requests }} запросов
+                </span>
+              </div>
+            </div>
+            <p v-else class="text-center text-gray-500">Нет данных о запросах</p>
           </div>
         </div>
       </div>
@@ -100,29 +124,35 @@
           }
         },
         latestUsers: [],
-        providerStats: []
+        aiRequestStats: []
       }
     },
     methods: {
-      formatDate(date) {
-        return new Date(date).toLocaleDateString()
+      formatRelativeDate(date) {
+        const diff = new Date() - new Date(date)
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+        return days === 0 ? 'Сегодня' : `${days} дн. назад`
       },
       async fetchDashboardData() {
         try {
           const response = await this.$axios.get('/admin/dashboard')
           const data = response.data
   
+          // Обновляем статистику
           this.dashboardStats.users.value = data.stats.total_users
           this.dashboardStats.aiRequests.value = data.usage_stats.total_ai_requests
           this.dashboardStats.plans.value = data.stats.total_plans
           this.dashboardStats.revenue.value = `${data.revenue_stats.monthly_revenue} ₴`
   
-          this.latestUsers = data.recent_activity.recent_users
-          
-          this.providerStats = data.usage_stats.tokens_by_provider.map(provider => ({
-            name: provider.provider_id,
+          // Последние пользователи
+          this.latestUsers = data.recent_activity.recent_users.slice(0, 5)
+  
+          // Статистика AI-запросов
+          const totalRequests = data.usage_stats.total_ai_requests
+          this.aiRequestStats = data.usage_stats.tokens_by_provider.map(provider => ({
+            provider: provider.provider_id,
             requests: provider.total_tokens,
-            percentage: (provider.total_tokens / data.usage_stats.total_ai_requests) * 100
+            percentage: Math.round((provider.total_tokens / totalRequests) * 100)
           }))
         } catch (error) {
           this.$toast.error('Не удалось загрузить статистику')
