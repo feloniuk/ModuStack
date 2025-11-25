@@ -6,6 +6,7 @@ use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\AssistantController;
 use App\Http\Controllers\API\AnalyticsController;
+use App\Http\Controllers\API\IntegrationController;
 use App\Http\Controllers\API\DataExportController;
 use App\Http\Controllers\API\AssistantCategoryController;
 use App\Http\Controllers\Admin\UserManagementController;
@@ -68,5 +69,8 @@ Route::middleware([
     Route::get('/analytics', [AnalyticsController::class, 'getUserAnalytics']);
     Route::get('/analytics/{period}', [AnalyticsController::class, 'getDetailedAnalytics']);
     Route::get('/export/{format?}', [DataExportController::class, 'exportUserData']);
+
+    Route::apiResource('integrations', IntegrationController::class);
+    Route::post('/integrations/{integration}/test', [IntegrationController::class, 'testIntegration']);
 
 });

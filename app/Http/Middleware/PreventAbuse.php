@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Log;
 
 class PreventAbuse
 {
@@ -47,7 +48,7 @@ class PreventAbuse
                     foreach ($dangerousPatterns as $pattern) {
                         if (preg_match($pattern, $value)) {
                             // Логируем попытку атаки
-                            \Log::warning('Potential security threat detected', [
+                            Log::warning('Potential security threat detected', [
                                 'ip' => request()->ip(),
                                 'pattern' => $pattern,
                                 'value' => $value
