@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite'
-import laravel from 'laravel-vite-plugin'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import vue from '@vitejs/plugin-vue';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
@@ -17,12 +18,10 @@ export default defineConfig({
             },
         }),
     ],
-    css: {
-        // Добавляем поддержку импорта CSS
-        preprocessorOptions: {
-            css: {
-                import: true
-            }
-        }
-    }
-})
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './resources/js'),
+            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy/dist/index.js'),
+        },
+    },
+});

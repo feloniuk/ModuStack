@@ -1,8 +1,12 @@
 <template>
     <div class="container mx-auto px-4 py-6">
-      <h1 class="text-2xl font-bold mb-6">Создание Проекта</h1>
+      <h1 class="text-2xl font-bold mb-6">Редактирование Проекта</h1>
   
-      <form @submit.prevent="createProject" class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-md">
+      <form 
+        v-if="project" 
+        @submit.prevent="updateProject" 
+        class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-md"
+      >
         <div class="mb-4">
           <label class="block mb-2 font-semibold">Название проекта</label>
           <input
@@ -15,7 +19,7 @@
         </div>
   
         <div class="mb-4">
-          <label class="block mb-2 font-semibold">Описание (необязательно)</label>
+          <label class="block mb-2 font-semibold">Описание</label>
           <textarea
             v-model="projectForm.description"
             rows="4"
@@ -47,7 +51,7 @@
             type="submit"
             class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            Создать проект
+            Обновить проект
           </button>
         </div>
       </form>
@@ -58,6 +62,7 @@
   export default {
     data() {
       return {
+        project: null,
         projectForm: {
           name: '',
           description: '',
@@ -66,15 +71,32 @@
       }
     },
     methods: {
-      async createProject() {
+      async fetchProject() {
         try {
-          const response = await this.$axios.post('/projects', this.projectForm)
-          this.$toast.success('Проект успешно создан')
+          const response = await this.$axios.get(`/projects/${this.$route.params.id}`)
+          this.project = response.data.project
+          this.projectForm = { 
+            name: this.project.name,
+            description: this.project.description,
+            visibility: this.project.visibility
+          }
+        } catch (error) {
+          this.$toast.error('Не удалось загрузить проект')
+          this.$router.push({ name: 'projects.index' })
+        }
+      },
+      async updateProject() {
+        try {
+          await this.$axios.put(`/projects/${this.$route.params.id}`, this.projectForm)
+          this.$toast.success('Проект успешно обновлен')
           this.$router.push({ name: 'projects.index' })
         } catch (error) {
-          this.$toast.error('Не удалось создать проект')
+          this.$toast.error('Не удалось обновить проект')
         }
       }
+    },
+    mounted() {
+      this.fetchProject()
     }
   }
   </script>

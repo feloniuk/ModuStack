@@ -1,151 +1,119 @@
 <template>
     <div class="container mx-auto px-4 py-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">User Management</h1>
+        <h1 class="text-2xl font-bold">Управление Тарифами</h1>
         <button 
-          @click="showCreateUserModal = true"
+          @click="openPlanModal(null)"
           class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          Create User
+          Создать Тариф
         </button>
       </div>
   
-      <!-- Фильтры и поиск -->
-      <div class="mb-4 flex space-x-4">
-        <input 
-          type="text" 
-          v-model="searchQuery"
-          placeholder="Search users..."
-          class="border px-3 py-2 rounded w-full"
+      <div class="grid md:grid-cols-3 gap-4">
+        <div 
+          v-for="plan in plans" 
+          :key="plan.id"
+          class="bg-white shadow rounded-lg p-6"
         >
-        <select v-model="statusFilter" class="border px-3 py-2 rounded">
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
-          <option value="banned">Banned</option>
-        </select>
-      </div>
-  
-      <!-- Таблица пользователей -->
-      <div class="bg-white shadow rounded-lg overflow-hidden">
-        <table class="w-full">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-4 py-3 text-left">ID</th>
-              <th class="px-4 py-3 text-left">Name</th>
-              <th class="px-4 py-3 text-left">Email</th>
-              <th class="px-4 py-3 text-left">Status</th>
-              <th class="px-4 py-3 text-left">Registered</th>
-              <th class="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr 
-              v-for="user in filteredUsers" 
-              :key="user.id"
-              class="border-b hover:bg-gray-50"
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">{{ plan.name }}</h2>
+            <span 
+              :class="{
+                'bg-green-100 text-green-800': !plan.is_free,
+                'bg-blue-100 text-blue-800': plan.is_free
+              }"
+              class="px-2 py-1 rounded text-sm"
             >
-              <td class="px-4 py-3">{{ user.id }}</td>
-              <td class="px-4 py-3">{{ user.name }}</td>
-              <td class="px-4 py-3">{{ user.email }}</td>
-              <td class="px-4 py-3">
-                <span 
-                  :class="{
-                    'text-green-600': user.status === 'active',
-                    'text-red-600': user.status === 'banned',
-                    'text-yellow-600': user.status === 'suspended'
-                  }"
-                >
-                  {{ user.status }}
-                </span>
-              </td>
-              <td class="px-4 py-3">{{ formatDate(user.created_at) }}</td>
-              <td class="px-4 py-3 text-right">
-                <div class="flex justify-end space-x-2">
-                  <button 
-                    @click="editUser(user)"
-                    class="text-blue-500 hover:text-blue-700"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    @click="changeUserStatus(user)"
-                    :class="{
-                      'text-red-500 hover:text-red-700': user.status === 'active',
-                      'text-green-500 hover:text-green-700': user.status !== 'active'
-                    }"
-                  >
-                    {{ user.status === 'active' ? 'Suspend' : 'Activate' }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              {{ plan.is_free ? 'Бесплатный' : 'Платный' }}
+            </span>
+          </div>
   
-        <!-- Pagination -->
-        <div class="px-4 py-3 bg-gray-50 flex justify-between items-center">
-          <span>Total Users: {{ users.length }}</span>
-          <div class="space-x-2">
+          <div class="mb-4">
+            <p class="text-2xl font-bold">{{ plan.price }} ₴/мес</p>
+          </div>
+  
+          <ul class="mb-4 space-y-2">
+            <li 
+              v-for="(feature, index) in parsePlanFeatures(plan.features)" 
+              :key="index"
+              class="flex items-center"
+            >
+              <i class="fas fa-check text-green-500 mr-2"></i>
+              {{ feature }}
+            </li>
+          </ul>
+  
+          <div class="flex justify-between">
             <button 
-              :disabled="currentPage === 1"
-              @click="currentPage--"
-              class="px-3 py-1 border rounded disabled:opacity-50"
+              @click="openPlanModal(plan)"
+              class="text-blue-500 hover:text-blue-700"
             >
-              Prev
+              Изменить
             </button>
             <button 
-              :disabled="currentPage * pageSize >= users.length"
-              @click="currentPage++"
-              class="px-3 py-1 border rounded disabled:opacity-50"
+              @click="deletePlan(plan)"
+              class="text-red-500 hover:text-red-700"
             >
-              Next
+              Удалить
             </button>
           </div>
         </div>
       </div>
   
-      <!-- Модальное окно создания/редактирования пользователя -->
+      <!-- Modal для создания/редактирования тарифа -->
       <div 
-        v-if="showCreateUserModal" 
+        v-if="planModal.show" 
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
       >
         <div class="bg-white p-6 rounded-lg w-96">
           <h2 class="text-xl font-bold mb-4">
-            {{ editingUser ? 'Edit User' : 'Create User' }}
+            {{ planModal.plan ? 'Редактировать' : 'Создать' }} Тариф
           </h2>
-          <form @submit.prevent="saveUser">
+  
+          <form @submit.prevent="savePlan">
             <div class="mb-4">
-              <label class="block mb-2">Name</label>
+              <label>Название</label>
               <input 
-                v-model="userForm.name" 
+                v-model="planModal.form.name" 
                 type="text" 
                 required 
                 class="w-full border px-3 py-2 rounded"
               >
             </div>
+  
             <div class="mb-4">
-              <label class="block mb-2">Email</label>
+              <label>Цена (₴)</label>
               <input 
-                v-model="userForm.email" 
-                type="email" 
+                v-model.number="planModal.form.price" 
+                type="number" 
                 required 
                 class="w-full border px-3 py-2 rounded"
               >
             </div>
+  
+            <div class="mb-4">
+              <label>Возможности (через запятую)</label>
+              <textarea 
+                v-model="planModal.form.features" 
+                class="w-full border px-3 py-2 rounded"
+                rows="4"
+              ></textarea>
+            </div>
+  
             <div class="flex justify-end space-x-2">
               <button 
                 type="button" 
-                @click="showCreateUserModal = false"
-                class="px-4 py-2 bg-gray-200 rounded"
+                @click="planModal.show = false" 
+                class="bg-gray-200 text-gray-700 px-4 py-2 rounded"
               >
-                Cancel
+                Отмена
               </button>
               <button 
                 type="submit" 
-                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                class="bg-blue-500 text-white px-4 py-2 rounded"
               >
-                Save
+                Сохранить
               </button>
             </div>
           </form>
@@ -158,79 +126,97 @@
   export default {
     data() {
       return {
-        users: [],
-        searchQuery: '',
-        statusFilter: '',
-        currentPage: 1,
-        pageSize: 10,
-        showCreateUserModal: false,
-        editingUser: null,
-        userForm: {
-          name: '',
-          email: ''
+        plans: [],
+        planModal: {
+          show: false,
+          plan: null,
+          form: {
+            name: '',
+            price: 0,
+            features: ''
+          }
         }
-      }
-    },
-    computed: {
-      filteredUsers() {
-        return this.users.filter(user => {
-          const matchesSearch = user.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                                 user.email.toLowerCase().includes(this.searchQuery.toLowerCase())
-          const matchesStatus = !this.statusFilter || user.status === this.statusFilter
-          return matchesSearch && matchesStatus
-        }).slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
       }
     },
     methods: {
-      async fetchUsers() {
+      parsePlanFeatures(features) {
         try {
-          const response = await axios.get('/api/admin/users')
-          this.users = response.data.users
-        } catch (error) {
-          console.error('Failed to fetch users', error)
+          const parsedFeatures = JSON.parse(features)
+          return [
+            `${parsedFeatures.requests_per_day} запросов в день`,
+            `Модели: ${parsedFeatures.ai_models.join(', ')}`,
+            parsedFeatures.max_assistants ? `До ${parsedFeatures.max_assistants} ассистентов` : 'Неограниченное кол-во ассистентов'
+          ]
+        } catch {
+          return []
         }
       },
-      formatDate(date) {
-        return new Date(date).toLocaleDateString()
-      },
-      editUser(user) {
-        this.editingUser = user
-        this.userForm = { ...user }
-        this.showCreateUserModal = true
-      },
-      async changeUserStatus(user) {
-        try {
-          await axios.patch(`/api/admin/users/${user.id}/status`, {
-            status: user.status === 'active' ? 'suspended' : 'active'
-          })
-          this.fetchUsers()
-        } catch (error) {
-          console.error('Failed to change user status', error)
-        }
-      },
-      async saveUser() {
-        try {
-          if (this.editingUser) {
-            // Обновление существующего пользователя
-            await axios.put(`/api/admin/users/${this.editingUser.id}`, this.userForm)
-          } else {
-            // Создание нового пользователя
-            await axios.post('/api/admin/users', this.userForm)
+      openPlanModal(plan) {
+        this.planModal.show = true
+        if (plan) {
+          this.planModal.plan = plan
+          this.planModal.form = {
+            name: plan.name,
+            price: plan.price,
+            features: JSON.stringify(plan.features, null, 2)
           }
-          this.fetchUsers()
-          this.showCreateUserModal = false
-          this.resetForm()
-        } catch (error) {
-          console.error('Failed to save user', error)
+        } else {
+          this.planModal.plan = null
+          this.planModal.form = {
+            name: '',
+            price: 0,
+            features: JSON.stringify({
+              requests_per_day: 50,
+              ai_models: ['huggingface_free'],
+              max_assistants: 1
+            }, null, 2)
+          }
         }
       },
-      resetForm() {
-        this.userForm = { name: '', email: '' }
-        this.editingUser = null
+      async fetchPlans() {
+        try {
+          const response = await this.$axios.get('/admin/plans')
+          this.plans = response.data.plans
+        } catch {
+          this.$toast.error('Не удалось загрузить тарифы')
+        }
+      },
+      async savePlan() {
+        try {
+          const features = JSON.parse(this.planModal.form.features)
+          const payload = {
+            ...this.planModal.form,
+            features,
+            is_free: features.requests_per_day === 50
+          }
+  
+          if (this.planModal.plan) {
+            await this.$axios.put(`/admin/plans/${this.planModal.plan.id}`, payload)
+          } else {
+            await this.$axios.post('/admin/plans', payload)
+          }
+          
+          this.$toast.success('Тариф сохранен')
+          this.planModal.show = false
+          this.fetchPlans()
+        } catch (error) {
+          this.$toast.error('Не удалось сохранить тариф')
+        }
+      },
+      async deletePlan(plan) {
+        if (confirm(`Удалить тариф "${plan.name}"?`)) {
+          try {
+            await this.$axios.delete(`/admin/plans/${plan.id}`)
+            this.$toast.success('Тариф удален')
+            this.fetchPlans()
+          } catch {
+            this.$toast.error('Не удалось удалить тариф')
+          }
+        }
       }
     },
     mounted() {
-      this.fetchUsers()
+      this.fetchPlans()
     }
   }
   </script>

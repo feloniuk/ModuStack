@@ -9,31 +9,29 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-Route::middleware(['auth', 'is_admin'])->group(function () {
-    Route::get('/admin', function () {
+Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');
     })->name('admin.dashboard');
 
-    Route::get('/admin/users', function () {
+    Route::get('/plans', function () {
+        return Inertia::render('Admin/Plans');
+    })->name('admin.plans');
+
+    Route::get('/users', function () {
         return Inertia::render('Admin/Users');
     })->name('admin.users');
 
-    // Аналогично для других admin-routes
+    Route::get('/providers', function () {
+        return Inertia::render('Admin/Providers');
+    })->name('admin.providers');
+
+    Route::get('/subscriptions', function () {
+        return Inertia::render('Admin/Subscriptions');
+    })->name('admin.subscriptions');
 });
 
 require __DIR__.'/auth.php';

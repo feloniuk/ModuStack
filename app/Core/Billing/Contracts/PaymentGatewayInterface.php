@@ -7,19 +7,19 @@ use App\Models\Plan;
 use App\Models\Payment;
 use App\Models\Subscription;
 
-abstract class PaymentGatewayInterface 
+interface PaymentGatewayInterface 
 {
-    abstract public function createSubscription(
+    public function createSubscription(
         User $user, 
         Plan $plan, 
         string $paymentMethod
     ): Subscription;
 
-    abstract public function cancelSubscription(
+    public function cancelSubscription(
         Subscription $subscription
     ): bool;
 
-    abstract public function processWebhook(array $payload): ?Payment;
+    public function processWebhook(array $payload): ?Payment;
 
-    abstract public function verifyPayment(string $transactionId): bool;
+    public function verifyPayment(string $transactionId): bool;
 }
