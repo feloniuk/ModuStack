@@ -54,6 +54,12 @@ return [
     ],
     'liqpay' => [
         // Аналогично Fondy
-    ]
+    ],
+    'huggingface' => [
+        'api_key' => env('HUGGINGFACE_API_KEY'),
+        'default_model' => env('HUGGINGFACE_DEFAULT_MODEL', 'gpt2'),
+        'rate_limit' => env('HUGGINGFACE_RATE_LIMIT', 10),
+        'timeout' => env('HUGGINGFACE_TIMEOUT', 30)
+    ],
 
 ];

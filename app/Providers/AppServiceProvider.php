@@ -2,24 +2,23 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Vite;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
+use App\Console\Commands\ResetHuggingFaceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
-
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        Vite::prefetch(concurrency: 3);
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+            $schedule->command(ResetHuggingFaceProvider::class)->hourly();
+        });
+    }
+
+    public function register(): void
+    {
+        // Регистрация команды
+        $this->app->bind(ResetHuggingFaceProvider::class);
     }
 }

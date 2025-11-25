@@ -4,6 +4,10 @@ use App\Http\Controllers\API\AssistantChatController;
 use App\Http\Controllers\API\UsageController;
 use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\ProjectController;
+use App\Http\Controllers\API\AssistantController;
+use App\Http\Controllers\API\AnalyticsController;
+use App\Http\Controllers\API\DataExportController;
+use App\Http\Controllers\API\AssistantCategoryController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\ProviderManagementController;
 use App\Http\Controllers\Admin\PlanManagementController;
@@ -46,5 +50,23 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified', 'is_admin'])->gr
     Route::apiResource('projects', ProjectController::class);
     Route::post('/projects/{project}/collaborators', [ProjectController::class, 'addCollaborator']);
     Route::delete('/projects/{project}/collaborators/{user}', [ProjectController::class, 'removeCollaborator']);
+});
+
+Route::middleware([
+    'auth:sanctum', 
+    'verified', 
+    'prevent.abuse',
+    'token.valid'
+])->group(function () {
+    // Ассистенты
+    Route::apiResource('assistants', AssistantController::class);
+
+    // Категории ассистентов
+    Route::get('/assistant-categories', [AssistantCategoryController::class, 'index']);
+    Route::post('/assistant-categories', [AssistantCategoryController::class, 'store']);
+
+    Route::get('/analytics', [AnalyticsController::class, 'getUserAnalytics']);
+    Route::get('/analytics/{period}', [AnalyticsController::class, 'getDetailedAnalytics']);
+    Route::get('/export/{format?}', [DataExportController::class, 'exportUserData']);
 
 });

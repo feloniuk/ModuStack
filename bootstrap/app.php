@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Console\Commands\ResetHuggingFaceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'is_admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'prevent.abuse' => \App\Http\Middleware\PreventAbuse::class,
+            'token.valid' => \App\Http\Middleware\EnsureTokenIsValid::class,
         ]);
 
         //
